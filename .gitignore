@@ -11,3 +11,6 @@ wheels/
 
 # Local secrets (see settings.py read_secret_file)
 .secrets/
+
+# Local dev database
+*.sqlite3
