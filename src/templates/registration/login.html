@@ -3,10 +3,12 @@
 {% block title %}Log in{% endblock %}
 
 {% block content %}
-    <h1>Log in</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Log in</button>
-    </form>
+    <article style="max-width: 24rem; margin-inline: auto;">
+        <h1>Log in</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Log in</button>
+        </form>
+    </article>
 {% endblock %}

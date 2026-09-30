@@ -6,8 +6,10 @@
     {% if user.is_authenticated %}
         <h1>Welcome back, {{ user.username }}</h1>
     {% else %}
-        <h1>CoVePa</h1>
-        <p>Cooperativa de Veitura Partejada &mdash; réservation de voiture partagée.</p>
-        <p><a href="{% url 'login' %}">Log in</a> to get started.</p>
+        <hgroup>
+            <h1>CoVePa</h1>
+            <p>Cooperativa de Veitura Partejada &mdash; réservation de voiture partagée.</p>
+        </hgroup>
+        <a href="{% url 'login' %}" role="button">Log in to get started</a>
     {% endif %}
 {% endblock %}

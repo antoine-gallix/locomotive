@@ -1,26 +1,35 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'css/pico.min.css' %}">
     <title>{% block title %}CoVePa{% endblock %}</title>
 </head>
 <body>
-    <header>
+    <header class="container">
         <nav>
-            <a href="{% url 'home' %}">CoVePa</a>
-            {% if user.is_authenticated %}
-                <span>{{ user.username }}</span>
-                <form method="post" action="{% url 'logout' %}" style="display:inline">
-                    {% csrf_token %}
-                    <button type="submit">Log out</button>
-                </form>
-            {% else %}
-                <a href="{% url 'login' %}">Log in</a>
-            {% endif %}
+            <ul>
+                <li><strong><a href="{% url 'home' %}">CoVePa</a></strong></li>
+            </ul>
+            <ul>
+                {% if user.is_authenticated %}
+                    <li>{{ user.username }}</li>
+                    <li>
+                        <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="secondary">Log out</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'login' %}" role="button">Log in</a></li>
+                {% endif %}
+            </ul>
         </nav>
     </header>
 
-    <main>
+    <main class="container">
         {% block content %}{% endblock %}
     </main>
 </body>
