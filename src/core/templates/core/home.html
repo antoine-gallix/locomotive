@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}CoVePa{% endblock %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+        <h1>Welcome back, {{ user.username }}</h1>
+    {% else %}
+        <h1>CoVePa</h1>
+        <p>Cooperativa de Veitura Partejada &mdash; réservation de voiture partagée.</p>
+        <p><a href="{% url 'login' %}">Log in</a> to get started.</p>
+    {% endif %}
+{% endblock %}
