@@ -5,13 +5,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{% static 'css/pico.min.css' %}">
-    <title>{% block title %}CoVePa{% endblock %}</title>
+    <title>{% block title %}Locomotive{% endblock %}</title>
 </head>
 <body>
     <header class="container">
         <nav>
             <ul>
-                <li><strong><a href="{% url 'home' %}">CoVePa</a></strong></li>
+                <li><strong><a href="{% url 'home' %}">Locomotive</a></strong></li>
             </ul>
             <ul>
                 {% if user.is_authenticated %}

@@ -1,7 +1,7 @@
 [project]
-name = "copave"
+name = "locomotive"
 version = "0.1.0"
-description = "Add your description here"
+description = "Coopérative Locale de Mobilité"
 readme = "README.md"
 authors = [
     { name = "Antoine Gallix", email = "7696611+antoine-gallix@users.noreply.github.com" }
@@ -10,9 +10,6 @@ requires-python = ">=3.14"
 dependencies = [
     "django>=6.1.1",
 ]
-
-[project.scripts]
-copave = "copave:main"
 
 [build-system]
 requires = ["uv_build>=0.12.15,<0.13.0"]

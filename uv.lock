@@ -12,17 +12,6 @@ wheels = [
 ]
 
 [[package]]
-name = "copave"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "django" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "django", specifier = ">=6.1.1" }]
-
-[[package]]
 name = "django"
 version = "6.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -35,6 +24,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/f8/d4/8314b5bdef20832f0
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8d/ca/c1040a4fd15754ede7df15fd72fc2e123045b473b253ab5f5284e11c651e/django-6.1.1-py3-none-any.whl", hash = "sha256:585fb82bf15053c42cf52e67c2f1b54a032dca384759315fd6678ab1870d1d72", size = 8419512, upload-time = "2026-09-02T17:20:39.153Z" },
 ]
+
+[[package]]
+name = "locomotive"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "django" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "django", specifier = ">=6.1.1" }]
 
 [[package]]
 name = "sqlparse"
