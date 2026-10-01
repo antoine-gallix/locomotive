@@ -42,6 +42,13 @@ makemigrations:
 migrate:
     uv run src/manage.py migrate
 
+# Delete the local database, rebuild it from migrations, and create a superuser
+[confirm("Delete src/db.sqlite3 and all its data?")]
+reset-db:
+    rm -f src/db.sqlite3
+    uv run src/manage.py migrate
+    uv run src/manage.py createsuperuser
+
 # Run Django's system checks
 check:
     uv run src/manage.py check
