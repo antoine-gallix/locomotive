@@ -52,3 +52,20 @@ reset-db:
 # Run Django's system checks
 check:
     uv run src/manage.py check
+
+# Build the production container image
+image:
+    podman build -t locomotive .
+
+# Run the production image on http://127.0.0.1:8080 (data kept in the `locomotive-data` volume)
+container-run: image
+    podman secret exists locomotive_secret_key || podman secret create locomotive_secret_key .secrets/secret_key
+    podman run --rm -it --name locomotive -p 8080:8000 \
+        -v locomotive-data:/data \
+        --secret locomotive_secret_key,target=django_secret_key \
+        -e DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1 \
+        locomotive
+
+# Create a superuser inside the running container
+container-createsuperuser:
+    podman exec -it locomotive python manage.py createsuperuser

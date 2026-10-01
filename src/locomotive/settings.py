@@ -44,10 +44,20 @@ def read_secret_file(env_var, default_path):
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = read_secret_file("DJANGO_SECRET_KEY_FILE", ".secrets/secret_key")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = []
+def env_list(name):
+    """Read a comma-separated environment variable as a list."""
+    return [item.strip() for item in os.environ.get(name, "").split(",") if item.strip()]
+
+
+# SECURITY WARNING: don't run with debug turned on in production!
+# On by default for local dev; the container image sets DJANGO_DEBUG=false.
+DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() in ("1", "true", "yes")
+
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS")
+
+# Needed when served over HTTPS on a public domain, e.g. "https://locomotive.example.org".
+CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
 
 
 # Application definition
@@ -71,6 +81,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -105,7 +116,7 @@ WSGI_APPLICATION = 'locomotive.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR.parent / 'db.sqlite3',
+        'NAME': os.environ.get("DJANGO_DB_PATH", BASE_DIR.parent / 'db.sqlite3'),
     }
 }
 
@@ -146,6 +157,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+# Where `collectstatic` gathers files for WhiteNoise to serve in production.
+STATIC_ROOT = BASE_DIR.parent / 'staticfiles'
 
 
 # Email
