@@ -1,0 +1,25 @@
+# Quadlet unit: systemd runs the Locomotive container from this file.
+# Install to /etc/containers/systemd/locomotive.container (see deploy/README.md).
+
+[Unit]
+Description=Locomotive web app
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+Image=localhost/locomotive:latest
+ContainerName=locomotive
+# Only reachable from the server itself; Caddy is the public entry point.
+PublishPort=127.0.0.1:8000:8000
+Volume=locomotive-data:/data
+Secret=locomotive_secret_key,target=django_secret_key
+# Replace locomotive.example.org with your domain.
+Environment=DJANGO_ALLOWED_HOSTS=locomotive.example.org
+Environment=DJANGO_CSRF_TRUSTED_ORIGINS=https://locomotive.example.org
+Environment=DJANGO_HTTPS=true
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

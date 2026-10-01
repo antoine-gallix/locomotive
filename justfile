@@ -69,3 +69,11 @@ container-run: image
 # Create a superuser inside the running container
 container-createsuperuser:
     podman exec -it locomotive python manage.py createsuperuser
+
+# SSH destination of the production server (override: `just deploy_host=me@host deploy`)
+deploy_host := "root@your-vps"
+
+# Build the image, copy it to the server, and restart the app there
+deploy: image
+    podman save localhost/locomotive:latest | gzip | ssh {{deploy_host}} podman load
+    ssh {{deploy_host}} systemctl restart locomotive

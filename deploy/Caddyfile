@@ -1,0 +1,5 @@
+# Caddy site for Locomotive: HTTPS (automatic certificate) -> the container.
+# Replace locomotive.example.org with your domain.
+locomotive.example.org {
+	reverse_proxy 127.0.0.1:8000
+}

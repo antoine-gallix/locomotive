@@ -45,6 +45,11 @@ def read_secret_file(env_var, default_path):
 SECRET_KEY = read_secret_file("DJANGO_SECRET_KEY_FILE", ".secrets/secret_key")
 
 
+def env_bool(name, default=False):
+    """Read a true/false environment variable."""
+    return os.environ.get(name, str(default)).lower() in ("1", "true", "yes")
+
+
 def env_list(name):
     """Read a comma-separated environment variable as a list."""
     return [item.strip() for item in os.environ.get(name, "").split(",") if item.strip()]
@@ -52,12 +57,19 @@ def env_list(name):
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # On by default for local dev; the container image sets DJANGO_DEBUG=false.
-DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() in ("1", "true", "yes")
+DEBUG = env_bool("DJANGO_DEBUG", default=True)
 
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS")
 
 # Needed when served over HTTPS on a public domain, e.g. "https://locomotive.example.org".
 CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
+
+# Set when served over HTTPS behind a reverse proxy (Caddy) that terminates TLS
+# and sets X-Forwarded-Proto. Only safe if the app is not reachable directly.
+if env_bool("DJANGO_HTTPS"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 
 # Application definition
