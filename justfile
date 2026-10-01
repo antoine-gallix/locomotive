@@ -2,12 +2,19 @@
 default:
     @just --list
 
+# Install dependencies
+install:
+    uv sync
 # Start the dev server (http://127.0.0.1:8000)
 run:
     uv run src/manage.py runserver
 
-# Open the app in a browser (nothing's mounted at / yet, so this opens /admin/)
+# Open the app in a browser
 open:
+    xdg-open http://127.0.0.1:8000/
+
+# Open the admin page in a browser
+open-admin:
     xdg-open http://127.0.0.1:8000/admin/
 
 # Python shell with Django/models loaded
