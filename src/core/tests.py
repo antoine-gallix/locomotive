@@ -1,3 +1,8 @@
-from django.test import TestCase
+import pytest
+from django.core.management import call_command
 
-# Create your tests here.
+
+@pytest.mark.django_db
+def test_migrations_are_in_sync_with_models():
+    """Fails if a model changed without a matching migration."""
+    call_command("makemigrations", "--check", "--dry-run")

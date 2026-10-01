@@ -5,6 +5,11 @@ default:
 # Install dependencies
 install:
     uv sync
+
+# Run the test suite (extra args are passed to pytest, e.g. `just test -k home`)
+test *args:
+    uv run pytest {{args}}
+
 # Start the dev server (http://127.0.0.1:8000)
 run:
     uv run src/manage.py runserver
@@ -15,7 +20,7 @@ open:
 
 # Open the admin page in a browser
 open-admin:
-    xdg-open http://127.0.0.1:8000/admin/
+    xdg-open http://127.0.0.1:8000/admin
 
 # Python shell with Django/models loaded
 shell:
