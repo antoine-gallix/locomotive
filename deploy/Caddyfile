@@ -1,5 +1,5 @@
 # Caddy site for Locomotive: HTTPS (automatic certificate) -> the container.
-# Replace locomotive.example.org with your domain.
-locomotive.example.org {
+# Template: deploy/playbook.yml fills in the domain from deploy/inventory.yml.
+{{ domain }} {
 	reverse_proxy 127.0.0.1:8000
 }

@@ -1,5 +1,6 @@
 # Quadlet unit: systemd runs the Locomotive container from this file.
-# Install to /etc/containers/systemd/locomotive.container (see deploy/README.md).
+# Template: deploy/playbook.yml fills in the domain from deploy/inventory.yml
+# and installs it to /etc/containers/systemd/locomotive.container.
 
 [Unit]
 Description=Locomotive web app
@@ -13,9 +14,8 @@ ContainerName=locomotive
 PublishPort=127.0.0.1:8000:8000
 Volume=locomotive-data:/data
 Secret=locomotive_secret_key,target=django_secret_key
-# Replace locomotive.example.org with your domain.
-Environment=DJANGO_ALLOWED_HOSTS=locomotive.example.org
-Environment=DJANGO_CSRF_TRUSTED_ORIGINS=https://locomotive.example.org
+Environment=DJANGO_ALLOWED_HOSTS={{ domain }}
+Environment=DJANGO_CSRF_TRUSTED_ORIGINS=https://{{ domain }}
 Environment=DJANGO_HTTPS=true
 
 [Service]

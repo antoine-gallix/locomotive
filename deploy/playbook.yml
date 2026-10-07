@@ -1,0 +1,149 @@
+# Deploys Locomotive to the server: image, Quadlet unit, Caddy site.
+#
+#   just deploy
+#   ansible-playbook -i deploy/inventory.yml deploy/playbook.yml
+#
+# Safe to re-run: the image is only copied when it changed, and the app is only
+# restarted when the image or the Quadlet unit changed.
+
+- name: Deploy Locomotive
+  hosts: locomotive
+  become: true
+
+  vars:
+    image: localhost/locomotive:latest
+    image_archive: /var/tmp/locomotive-image.tar
+    # The existing Caddy config; the Locomotive site is added to it as a block.
+    caddyfile_path: /etc/caddy/Caddyfile
+
+  handlers: # to be triggered by other plays
+    - name: Restart locomotive
+      ansible.builtin.systemd_service:
+        name: locomotive
+        state: restarted
+        daemon_reload: true
+
+    - name: Reload caddy
+      ansible.builtin.systemd_service:
+        name: caddy
+        state: reloaded
+
+  tasks:
+    - name: Check that the domain is set
+      # runs in ansible playbook context; checks if a variable is defined
+      ansible.builtin.assert:
+        that: domain is defined and domain != 'locomotive.example.org'
+        fail_msg: Set `domain` in deploy/inventory.yml.
+
+    - name: Install podman
+      ansible.builtin.package:
+        name: podman
+        state: present
+
+    # --- Image: built locally, copied over only when it differs ---
+
+    - name: Build the image locally
+      ansible.builtin.command:
+        cmd: podman build -t {{ image }} .
+        chdir: "{{ playbook_dir }}/.."
+      delegate_to: localhost
+      become: false
+      changed_when: false
+
+    - name: Get the local image ID
+      ansible.builtin.command: podman images --no-trunc --quiet {{ image }}
+      delegate_to: localhost
+      become: false
+      register: local_image
+      changed_when: false
+      failed_when: local_image.rc != 0 or local_image.stdout == ''
+
+    - name: Get the image ID on the server
+      ansible.builtin.command: podman images --no-trunc --quiet {{ image }}
+      register: remote_image
+      changed_when: false
+
+    - name: Copy the image to the server
+      when: local_image.stdout != remote_image.stdout
+      block:
+        - name: Save the image to an archive
+          ansible.builtin.command: podman save --output {{ image_archive }} {{ image }}
+          delegate_to: localhost
+          become: false
+          changed_when: true
+
+        - name: Upload the archive
+          ansible.builtin.copy:
+            src: "{{ image_archive }}"
+            dest: "{{ image_archive }}"
+            mode: "0600"
+
+        - name: Load the image
+          ansible.builtin.command: podman load --input {{ image_archive }}
+          changed_when: true
+          notify: Restart locomotive
+      always:
+        - name: Remove the archive from the server
+          ansible.builtin.file:
+            path: "{{ image_archive }}"
+            state: absent
+
+        - name: Remove the local archive
+          ansible.builtin.file:
+            path: "{{ image_archive }}"
+            state: absent
+          delegate_to: localhost
+          become: false
+
+    # --- Secret key: generated on first deploy, never replaced ---
+
+    - name: Check for the secret key
+      ansible.builtin.command: podman secret exists locomotive_secret_key
+      register: secret_key
+      changed_when: false
+      failed_when: secret_key.rc not in [0, 1]
+
+    - name: Create the secret key
+      ansible.builtin.command:
+        cmd: podman secret create locomotive_secret_key -
+        stdin: "{{ lookup('ansible.builtin.password', '/dev/null', length=50, chars=['ascii_letters', 'digits']) }}"
+        stdin_add_newline: false
+      when: secret_key.rc == 1
+      changed_when: true
+      no_log: true
+
+    # --- Quadlet unit ---
+
+    - name: Create the Quadlet directory
+      ansible.builtin.file:
+        path: /etc/containers/systemd
+        state: directory
+        mode: "0755"
+
+    - name: Install the Quadlet unit
+      ansible.builtin.template:
+        src: locomotive.container
+        dest: /etc/containers/systemd/locomotive.container
+        mode: "0644"
+      notify: Restart locomotive
+
+    # --- Caddy site, added to the existing Caddyfile ---
+
+    - name: Add the site to the Caddyfile
+      ansible.builtin.blockinfile:
+        path: "{{ caddyfile_path }}"
+        block: "{{ lookup('ansible.builtin.template', 'Caddyfile') }}"
+        marker: "# {mark} locomotive (managed by Ansible)"
+      notify: Reload caddy
+
+    # --- Make sure it's running ---
+
+    - name: Apply pending restarts
+      ansible.builtin.meta: flush_handlers
+
+    # No `enabled`: the Quadlet's [Install] section starts it at boot.
+    - name: Start locomotive
+      ansible.builtin.systemd_service:
+        name: locomotive
+        state: started
+        daemon_reload: true
