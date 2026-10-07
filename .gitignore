@@ -17,3 +17,5 @@ wheels/
 
 # Collected static files (manage.py collectstatic)
 staticfiles/
+locomotive.code-workspace
+deploy/inventory.yml
