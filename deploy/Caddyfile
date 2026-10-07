@@ -1,5 +1,5 @@
-# Caddy site for Locomotive: HTTPS (automatic certificate) -> the container.
-# Template: deploy/playbook.yml fills in the domain from deploy/inventory.yml.
+# Caddy site config for Locomotive
+# Template variables are filled with variables from the inventory
 {{ domain }} {
 	reverse_proxy 127.0.0.1:8000
 }

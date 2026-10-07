@@ -2,7 +2,7 @@
 # Copy to deploy/inventory.yml (git-ignored) and fill in your values.
 locomotive:
   hosts:
-    your-vps:
+    your-vps: # <- put the server name as defined in your ssh hosts
       ansible_user: root
   vars:
-    domain: locomotive.example.org
+    domain: locomotive.example.org # <- put the domain under which the server is deployed

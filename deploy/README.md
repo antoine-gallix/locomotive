@@ -16,7 +16,7 @@ Deployment is done by the Ansible playbook `deploy/playbook.yml`, run from your 
 
 3. **Ansible**: install it locally, for example `uv tool install ansible-core`.
 
-4. **Inventory**: in `deploy/inventory.yml`, replace `your-vps` with your SSH destination and `locomotive.example.org` with your domain.
+4. **Inventory**: `cp deploy/inventory.example.yml deploy/inventory.yml`, then replace `your-vps` with your SSH destination and `locomotive.example.org` with your domain.
 
 5. **Deploy**:
 
@@ -29,7 +29,7 @@ Deployment is done by the Ansible playbook `deploy/playbook.yml`, run from your 
    - builds the image and copies it to the server, if it changed;
    - generates the Django secret key as the Podman secret `locomotive_secret_key`, on the first run only;
    - installs the Quadlet unit to `/etc/containers/systemd/locomotive.container`;
-   - adds the site to `/etc/caddy/Caddyfile`, between `# BEGIN locomotive` and `# END locomotive` markers, leaving the rest of the file alone;
+   - installs the site as `/etc/caddy/Caddyfile.d/locomotive.caddyfile`, and adds `import /etc/caddy/Caddyfile.d/*.caddyfile` to `/etc/caddy/Caddyfile` if it has no such import yet (Fedora's has one already);
    - restarts the app and reloads Caddy when something they depend on changed.
 
    If your Caddy config lives elsewhere, set `caddyfile_path` in the inventory vars.

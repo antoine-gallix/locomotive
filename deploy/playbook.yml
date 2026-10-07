@@ -8,13 +8,14 @@
 
 - name: Deploy Locomotive
   hosts: locomotive
-  become: true
+  become: true # act as the root user by default
 
   vars:
     image: localhost/locomotive:latest
     image_archive: /var/tmp/locomotive-image.tar
-    # The existing Caddy config; the Locomotive site is added to it as a block.
+    # The existing Caddy config; it gets one line importing the sites directory.
     caddyfile_path: /etc/caddy/Caddyfile
+    caddy_sites_dir: "{{ caddyfile_path | dirname }}/Caddyfile.d"
 
   handlers: # to be triggered by other plays
     - name: Restart locomotive
@@ -35,7 +36,7 @@
         that: domain is defined and domain != 'locomotive.example.org'
         fail_msg: Set `domain` in deploy/inventory.yml.
 
-    - name: Install podman
+    - name: Install podman # why not running locally?
       ansible.builtin.package:
         name: podman
         state: present
@@ -46,16 +47,17 @@
       ansible.builtin.command:
         cmd: podman build -t {{ image }} .
         chdir: "{{ playbook_dir }}/.."
-      delegate_to: localhost
-      become: false
-      changed_when: false
+      delegate_to: localhost # run this command locally
+      become: false # under current user
+      changed_when: false # do not report any change
 
     - name: Get the local image ID
-      ansible.builtin.command: podman images --no-trunc --quiet {{ image }}
+      ansible.builtin.command: podman images --no-trunc --quiet {{ image }} # get image hash
       delegate_to: localhost
       become: false
-      register: local_image
+      register: local_image # store command return in a variable
       changed_when: false
+      # stop if command fail (return code not zero) or no output
       failed_when: local_image.rc != 0 or local_image.stdout == ''
 
     - name: Get the image ID on the server
@@ -127,13 +129,28 @@
         mode: "0644"
       notify: Restart locomotive
 
-    # --- Caddy site, added to the existing Caddyfile ---
+    # --- Caddy site, in its own file imported by the main Caddyfile ---
 
-    - name: Add the site to the Caddyfile
-      ansible.builtin.blockinfile:
+    - name: Create the Caddy sites directory
+      ansible.builtin.file:
+        path: "{{ caddy_sites_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Install the Caddy site
+      ansible.builtin.template:
+        src: Caddyfile
+        dest: "{{ caddy_sites_dir }}/locomotive.caddyfile"
+        mode: "0644"
+      notify: Reload caddy
+
+    # Fedora's Caddyfile already imports this directory (as a relative path);
+    # the regexp matches that line too, so the import is never added twice.
+    - name: Import the sites directory in the Caddyfile
+      ansible.builtin.lineinfile:
         path: "{{ caddyfile_path }}"
-        block: "{{ lookup('ansible.builtin.template', 'Caddyfile') }}"
-        marker: "# {mark} locomotive (managed by Ansible)"
+        regexp: '^\s*import\s+\S*Caddyfile\.d/'
+        line: "import {{ caddy_sites_dir }}/*.caddyfile"
       notify: Reload caddy
 
     # --- Make sure it's running ---
