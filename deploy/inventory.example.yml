@@ -1,0 +1,8 @@
+# Where and under which domain Locomotive is deployed (see deploy/README.md).
+# Copy to deploy/inventory.yml (git-ignored) and fill in your values.
+locomotive:
+  hosts:
+    your-vps:
+      ansible_user: root
+  vars:
+    domain: locomotive.example.org
